@@ -17,7 +17,7 @@ using namespace std;
 
 struct MyStor {//for save all inform
 string nameOfFile;
-string commandLine;//line with command
+string commandLine;//line with command   6
 //char *sentenceFirst;//first elem on all sentence
 //int sFCounter = 0;
 char *sentenseLast;//указатель на последний элемент в предложении
