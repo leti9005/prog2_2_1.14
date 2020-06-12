@@ -242,7 +242,8 @@ public:
                nwLength = length;
            }
            if(myStor.commandLine[i] == 'P') {
-               if(myStor.commandLine[i + 2] == '6'&& myStor.commandLine[i+3] == myStor.sentenceCounter)
+               int index = (int)myStor.commandLine [i+3] - 48;
+               if(myStor.commandLine[i + 2] == '6'&& index == myStor.sentenceCounter)
                {
                    i+=3;
                    if(myStor.commandLine[i + 2] == 0) {
