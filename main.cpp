@@ -344,7 +344,7 @@ public:
             for (int i = 0; i < sWCounter; ++i) {
                 if (pos != 0 && positionCorr == i)
                 {
-                    out << " " << newWord;//проверка для пункта р2
+                    out << " " << &newWord;//проверка для пункта р2
                     blockerP2 = 1;//блокирую метод p2
                 }
                 if (blockerH2 == 0 && startOnThisWordNumber != 0)
@@ -354,13 +354,12 @@ public:
                 }
                 if (blockerC7 == -1)
                 {
-                    out << " " << word;
+                    out << " " << &word;
                     blockerC7 = 1;
                 }
                 else if ((wordLength[i]) != 3 && wordLength[i] != 1)
-                    for (int k = 0; k < wordLength[i]; ++k) {
-                        out << " " << sentenceWith[k];
-                    } // если слово не походит на знак пунктуации, то вывожу
+                        out << " " << &sentenceWith[i];
+                // если слово не походит на знак пунктуации, то вывожу
                 else if (wordLength[i] == 1 && sentenceWith[i] != ' ') out << sentenceWith[i];
                 else if (wordLength[i] == 3) {
                     char *check = new char[3];
