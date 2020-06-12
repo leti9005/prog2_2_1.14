@@ -263,7 +263,6 @@ public:
                        length++;
                        i++;
                    }
-
                }
            }
         }
@@ -338,8 +337,9 @@ public:
     void printer() {
         int positionCorr = pos;// завожу корректировки по знакам пунктуации
         ofstream out;               // поток для записи
-        out.open(myStor.nameOfFile);// окрываем файл для записи
+        out.open(myStor.nameOfFile, ios::app);// окрываем файл для записи
         if (out.is_open()) {
+            out << '\n';
             //int checker = wordLength[0];
             for (int i = 0; i < sWCounter; ++i) {
                 if (pos != 0 && positionCorr == i)
@@ -359,7 +359,7 @@ public:
                 }
                 else if ((wordLength[i]) != 3 && wordLength[i] != 1)
                     for (int k = 0; k < wordLength[i]; ++k) {
-                        out << " " << sentenceWith[i];
+                        out << " " << sentenceWith[k];
                     } // если слово не походит на знак пунктуации, то вывожу
                 else if (wordLength[i] == 1 && sentenceWith[i] != ' ') out << sentenceWith[i];
                 else if (wordLength[i] == 3) {
@@ -368,7 +368,6 @@ public:
                     if(check[0] != ' ') out << sentenceWith[i];
                 }
             }
-          out << '\n';
         }
         out.close();
     }
