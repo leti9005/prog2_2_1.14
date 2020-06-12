@@ -41,10 +41,12 @@ public:
     int *punctuation = new int[INT16_MAX];// указатель на знаки пунктуации
     int *wordLength = new int[INT16_MAX];// для sentenceWith
     char *newWord = new char[CHAR_MAX];// P2 word
+    int nwLength = 0;// р2 newWord length
     int pos = 0;// P2 position
     int pCounter = 0;// подсчет количества элементов в punctuation
     int startOnThisWordNumber = 0; //h2 result
     char *word = new char[CHAR_MAX];//C7
+    int wLength = 0;//c7 word length
 
     //int *clearSentence;// слова без знаков пунктуации
     //int cSCounter = 0;// подсчет количества элементов в clearSentence
@@ -136,7 +138,7 @@ public:
 
     // check punctuation mark
     // if the char is a punctuation mark function return true, and return false if is not
-    bool punctuationChecker(char mark) {
+    static bool punctuationChecker(char mark) {
         switch (mark) {
             case ',':
                 return true;
@@ -237,7 +239,7 @@ public:
                    length++;
                }
                usingSumbolSequence(nWord, length);
-               return;
+               nwLength = length;
            }
            if(myStor.commandLine[i] == 'P') {
                if(myStor.commandLine[i + 2] == '6'&& myStor.commandLine[i+3] == myStor.sentenceCounter)
@@ -252,16 +254,19 @@ public:
                         i+=2;
                     }
                }
-               else if(myStor.commandLine[i+2] == myStor.sentenceCounter && blockerP2 == 0) {
-                   i+=2;
-                   pos = myStor.commandLine[i + 2];// позиция
-                   i+2;
-                   length = 0;
-                   while (myStor.commandLine[i + 1] != ',')
-                   {
-                       newWord[length] = myStor.commandLine[i + 1];
-                       length++;
-                       i++;
+               else {
+                   int index = (int)myStor.commandLine [i+4] - 48;
+                   if (index == myStor.sentenceCounter) {//&& blockerP2 == 0
+                       i += 4;
+                       pos = myStor.commandLine[i + 2];// позиция
+                       i + 2;
+                       length = 0;
+                       while (myStor.commandLine[i + 1] != ',') {
+                           newWord[length] = myStor.commandLine[i + 1];
+                           length++;
+                           i++;
+                       }
+                       nwLength = length;
                    }
                }
            }
@@ -289,7 +294,7 @@ public:
             }
     }
 
-    char* startOnThisWord(char* word, int length)
+    void startOnThisWord(char* word, int length)
     {
         if (wordLength[0] == length) {
             int controller = 0;
@@ -342,9 +347,12 @@ public:
             out << '\n';
             //int checker = wordLength[0];
             for (int i = 0; i < sWCounter; ++i) {
-                if (pos != 0 && positionCorr == i)
+                if (pos != 0 && positionCorr == i)//проверка для пункта р2
                 {
-                    out << " " << &newWord;//проверка для пункта р2
+                    out << " " ;
+                    for (int j = 0; j < nwLength; ++j) {
+                        out << &newWord[j];
+                    }
                     blockerP2 = 1;//блокирую метод p2
                 }
                 if (blockerH2 == 0 && startOnThisWordNumber != 0)
@@ -354,24 +362,37 @@ public:
                 }
                 if (blockerC7 == -1)
                 {
-                    out << " " << &word;
+                    out << " ";
+                    for (int j = 0; j < wLength; ++j) {
+                        out  << &word[j];
+                    }
+
                     blockerC7 = 1;
                 }
-                else if ((wordLength[i]) != 3 && wordLength[i] != 1)
-                        out << " " << &sentenceWith[i];
+                else if ((wordLength[i]) != 3 && wordLength[i] != 1) {
+                    out << " ";
+                    char* insWord = &sentenceWith[i];
+                    for (int k = 0; k < wordLength[i]; ++k) {
+                        out << insWord[k];
+                    }
+                }
                 // если слово не походит на знак пунктуации, то вывожу
                 else if (wordLength[i] == 1 && sentenceWith[i] != ' ') out << sentenceWith[i];
                 else if (wordLength[i] == 3) {
                     char *check = new char[3];
-                    check = &sentenceWith[i];
-                    if(check[0] != ' ') out << sentenceWith[i];
+                    check[0] = sentenceWith[i];
+                    if(check[0] != ' ')
+                    {
+                        if (check[0] != '.' && i != 0) out << ' ';
+                        for (int j = 0; j < 3; ++j) {
+                            out << check[j];
+                        }
+                    }
                 }
             }
         }
         out.close();
     }
-
-
 };
 
 
@@ -393,6 +414,7 @@ int main() {
     in.close();
     //in this plase user write all command/ command logic : command.command. example: c.7,p.2,
     //подразумевается, что в многоточии 3 точки
+    // после линии ввода нужно указать запятую
 
 }
 //hello, this is a sentence 1.
