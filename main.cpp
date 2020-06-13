@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 
 using namespace std;
 /** Текст представляет собой последовательность отдельных предложений, содержащих слова и знаки пунктуации.
