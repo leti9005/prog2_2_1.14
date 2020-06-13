@@ -37,9 +37,9 @@ public:
     int blockerP2 = 0;
     int blockerH2 = 0;
     int blockerC7 = 0;
-    char *sentenceWith = new char[CHAR_MAX];// указатель на начало слов и знаков пунктуации
+    char **sentenceWith = new char*[CHAR_MAX];// указатель на начало слов и знаков пунктуации
     int sWCounter = 0;// подсчет количества элементов в sentenceWith
-    int *punctuation = new int[INT16_MAX];// указатель на знаки пунктуации
+    char **punctuation = new char*[CHAR_MAX];// указатель на знаки пунктуации
     int *wordLength = new int[INT16_MAX];// для sentenceWith
     char *newWord = new char[CHAR_MAX];// P2 word
     int nwLength = 0;// р2 newWord length
@@ -99,7 +99,7 @@ public:
             nWord[j] = wordAdd[j];
         }
         // указатель на начало слова завожу в необходимые массивы
-        sentenceWith[sWCounter] = *nWord;// в массив указателей вводим новый указатель на слово
+        sentenceWith[sWCounter] = nWord;// в массив указателей вводим новый указатель на слово
         wordLength[sWCounter] = length;
         sWCounter++;
         // clearSentence[cSCounter] = *newWord;
@@ -114,12 +114,12 @@ public:
         length++;
         if (length == fastLength) //проверяю, был ли в конце знак препинания не равный многоточию
         {
-            char punct[1];
+            char *punct;
             punct[0] = wordAdd[length];
-            sentenceWith[sWCounter] = *punct;
+            sentenceWith[sWCounter] = punct;
             wordLength[sWCounter] = 1;
             sWCounter++;
-            punctuation[pCounter] = *punct;
+            punctuation[pCounter] = punct;
             pCounter++;
         }
         else {
@@ -128,10 +128,10 @@ public:
             {
                 char punct[3];
                 punct[0], punct[1], punct[2] = '.';
-                sentenceWith[sWCounter] = *punct;
+                sentenceWith[sWCounter] = punct;
                 wordLength[sWCounter] = 3;
                 sWCounter++;
-                punctuation[pCounter] = *punct;
+                punctuation[pCounter] = punct;
                 pCounter++;
             }
         }
@@ -281,18 +281,18 @@ public:
     void deletePunctuationMark(int isDeleteAll, char* punctMarc, int length) {
         if (isDeleteAll == 0)
             for (int i = 0; i < pCounter; ++i) {
-                punctuation[i] = ' ';
+                *punctuation[i] = ' ';
             }
         else if(length == 1)
         {
             for (int i = 0; i < pCounter; ++i) {
-                if (punctuation[i] == punctMarc[0]) punctuation[i] = ' ';
+                if (*punctuation[i] == punctMarc[0]) *punctuation[i] = ' ';
             }
         }
         else
             for (int i = 0; i < pCounter; ++i)
             {
-                if (punctuation[i] == punctMarc[0]) punctuation[i] = ' ';//затираем многоточие
+                if (*punctuation[i] == punctMarc[0]) *punctuation[i] = ' ';//затираем многоточие
             }
     }
 
@@ -301,7 +301,7 @@ public:
         if (wordLength[0] == length) {
             int controller = 0;
             char *nWord = new char(wordLength[0]);
-            nWord = &sentenceWith[0];
+            nWord = sentenceWith[0];
             for (int i = 0; i < wordLength[0]; ++i) {
                 if (nWord[i] != word[i]) break;
                 else i = controller;
@@ -321,7 +321,7 @@ public:
           if(wordLength[i] > length)
           {
               char* nWord = new char [wordLength[i]];
-              nWord = &sentenceWith[i];
+              nWord = sentenceWith[i];
               for (int j = 0; j < wordLength[i]; ++j)
               {
                   if (nWord[j] == word[counter]) counter++;
@@ -372,17 +372,17 @@ public:
                     blockerC7 = 1;
                 }
                 else if ((wordLength[i]) != 3 && wordLength[i] != 1) {
-                    char* insWord = &sentenceWith[i];
+                    char* insWord = sentenceWith[i];
                     for (int k = 0; k < wordLength[i]; ++k) {
                         out << insWord[k];
                     }
                     out << " ";
                 }
                 // если слово не походит на знак пунктуации, то вывожу
-                else if (wordLength[i] == 1 && sentenceWith[i] != ' ') out << sentenceWith[i];
+                else if (wordLength[i] == 1 && *sentenceWith[i] != ' ') out << sentenceWith[i];
                 else if (wordLength[i] == 3) {
                     char *check = new char[3];
-                    check[0] = sentenceWith[i];
+                    check[0] = *sentenceWith[i];
                     if(check[0] != ' ')
                     {
                         if (check[0] != '.' && i != 0) out << ' ';
