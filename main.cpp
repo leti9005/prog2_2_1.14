@@ -345,7 +345,7 @@ public:
         ofstream out;               // поток для записи
         out.open(myStor.nameOfFile, ios::app);// окрываем файл для записи
         if (out.is_open()) {
-            out << '\n';
+
             //int checker = wordLength[0];
             for (int i = 0; i < sWCounter; ++i) {
                 if (pos != 0 && positionCorr == i)//проверка для пункта р2
@@ -371,11 +371,11 @@ public:
                     blockerC7 = 1;
                 }
                 else if ((wordLength[i]) != 3 && wordLength[i] != 1) {
-                    out << " ";
                     char* insWord = &sentenceWith[i];
                     for (int k = 0; k < wordLength[i]; ++k) {
                         out << insWord[k];
                     }
+                    out << " ";
                 }
                 // если слово не походит на знак пунктуации, то вывожу
                 else if (wordLength[i] == 1 && sentenceWith[i] != ' ') out << sentenceWith[i];
@@ -391,6 +391,7 @@ public:
                     }
                 }
             }
+            out << '\n';
         }
         out.close();
     }
