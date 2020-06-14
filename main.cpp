@@ -375,10 +375,12 @@ public:
                     //i++;
                     //if(i == sWCounter) break;
                 }
-                if (myStor.pos == (i - positionCorr + 1) && myStor.blockerP2 == 0)//проверка для пункта р2
+                int tmp = i - positionCorr + 1;//тестинг
+                if (myStor.pos == tmp && myStor.blockerP2 == 0)//проверка для пункта р2
                 {
                     if(myStor.pos - 1 != 0) out << " ";
                     for (int j = 0; j < nwLength; ++j) {
+                        out << myStor.newWord[j];
                     }
                     if(myStor.pos - 1 == 0) out << " ";
                     myStor.blockerP2 = 1;//блокирую метод p2
