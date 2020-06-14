@@ -145,7 +145,7 @@ public:
     // check punctuation mark
     // if the char is a punctuation mark function return true, and return false if is not
     static bool punctuationChecker(char mark) {
-        switch (mark - 48) {
+        switch (mark) {
             case ',':
                 return true;
             case ':':
@@ -367,11 +367,18 @@ public:
 
             //int checker = wordLength[0];
             for (int i = 0; i < sWCounter; ++i) {
+                if (wordLength[i] == 1)
+                {
+                   char* wordOne = sentenceWith[i];
+                   if(wordOne[0] != ' ') out << ' ' << wordOne[0];
+                   if(punctuationChecker(wordOne[0] - 48)) positionCorr++;
+                    //i++;
+                    //if(i == sWCounter) break;
+                }
                 if (myStor.pos == (i - positionCorr + 1) && myStor.blockerP2 == 0)//проверка для пункта р2
                 {
                     if(myStor.pos - 1 != 0) out << " ";
                     for (int j = 0; j < nwLength; ++j) {
-                        out << myStor.newWord[j];
                     }
                     if(myStor.pos - 1 == 0) out << " ";
                     myStor.blockerP2 = 1;//блокирую метод p2
@@ -404,14 +411,6 @@ public:
                    // if(i == sWCounter) break;
                 }
                 // если слово не походит на знак пунктуации, то вывожу
-                if (wordLength[i] == 1 && *sentenceWith[i]-48 != ' ')
-                {
-
-                    out << ' ' << (string)sentenceWith[i];
-                    if(punctuationChecker(*sentenceWith[i])) positionCorr++;
-                    //i++;
-                   //if(i == sWCounter) break;
-                }
                 if((*sentenceWith[i] - 48) == ' ') positionCorr++;
                 if (wordLength[i] == 3) {
                     char *check = sentenceWith[i];
@@ -461,3 +460,8 @@ int main() {
 //P.2.2.4.trtrtr,
 
 
+//C:\tmp\test0.txt
+//C:\tmp\testExit.txt
+//P.2.1.2.trtrtr, // проверка функциональная
+//ИЛИ
+//P.2.2.1.trtrtr!!!, // проверка на знаки + запись перед словом 1
