@@ -22,6 +22,11 @@ struct MyStor {//for save all inform
     string nameOfFile;
     int sentenceCounter = 0;//порядковый номер предложения
     string commandLine;//line with command   6
+    int pos = 0;// P2 position
+    int blockerP2 = 0;
+    int blockerH2 = 0;
+    int blockerC7 = 0;
+    char *newWord = new char[CHAR_MAX];// P2 word
 //char *sentenceFirst;//first elem on all sentence
     //int sFCounter = 0;
     char *sentenseLast;//указатель на последний элемент в предложении
@@ -34,16 +39,12 @@ MyStor myStor;
 class Sentence//новое предложение
 {
 public:
-    int blockerP2 = 0;
-    int blockerH2 = 0;
-    int blockerC7 = 0;
+
     char **sentenceWith = new char*[CHAR_MAX];// указатель на начало слов и знаков пунктуации
     int sWCounter = 0;// подсчет количества элементов в sentenceWith
     char **punctuation = new char*[CHAR_MAX];// указатель на знаки пунктуации
     int *wordLength = new int[INT16_MAX];// для sentenceWith
-    char *newWord = new char[CHAR_MAX];// P2 word
     int nwLength = 0;// р2 newWord length
-    int pos = 0;// P2 position
     int pCounter = 0;// подсчет количества элементов в punctuation
     int startOnThisWordNumber = 0; //h2 result
     char *word = new char[CHAR_MAX];//C7
@@ -65,7 +66,10 @@ public:
         for (int i = 0; i < line.length(); ++i) {
             if (line[i] == ' ') {
                 add(wordFast,totalWordCount);
-                //  flag = 1;
+                //flag = 1;
+                for (int j = 0; j < totalWordCount; ++j) {
+                  //  wordFast[j] = ' ';
+                }
                 totalWordCount = 0;
 
             } else {
@@ -79,6 +83,7 @@ public:
         //sWCounter++; //увеличиваю счетчик элементов предложения ????????????????????????????????????????????????????
         commandParser();
         printer();
+
         delete[] wordFast;
     }
 
@@ -114,7 +119,7 @@ public:
         length++;
         if (length == fastLength) //проверяю, был ли в конце знак препинания не равный многоточию
         {
-            char *punct;
+            char *punct = new char[1];
             punct[0] = wordAdd[length];
             sentenceWith[sWCounter] = punct;
             wordLength[sWCounter] = 1;
@@ -126,7 +131,7 @@ public:
             length += 2;
             if (length == fastLength)
             {
-                char punct[3];
+                char *punct = new char[3];
                 punct[0], punct[1], punct[2] = '.';
                 sentenceWith[sWCounter] = punct;
                 wordLength[sWCounter] = 3;
@@ -140,7 +145,7 @@ public:
     // check punctuation mark
     // if the char is a punctuation mark function return true, and return false if is not
     static bool punctuationChecker(char mark) {
-        switch (mark) {
+        switch (mark - 48) {
             case ',':
                 return true;
             case ':':
@@ -201,7 +206,7 @@ public:
         {
            int length = 0;
            int tempI;
-           if(myStor.commandLine[i] == 'H' && blockerH2 == 0)
+           if(myStor.commandLine[i] == 'H' && myStor.blockerH2 == 0)
            {
                tempI = i;
                i += 2;//+ 2 для пропуска номера и точки
@@ -220,10 +225,9 @@ public:
                    i++;
                }
                startOnThisWord(nWord, length);
-
                delete [] nWord;
            }
-           if(myStor.commandLine[i] == 'C' && blockerC7 == 0) {
+           if(myStor.commandLine[i] == 'C' && myStor.blockerC7 == 0) {
                tempI = i;
                i += 2;//+ 2 для пропуска номера и точки
                while (myStor.commandLine[i] != ',')
@@ -252,19 +256,33 @@ public:
                        deletePunctuationMark(0, reinterpret_cast<char *>('r'), 0);
                    }
                     else {
-                        deletePunctuationMark(1, reinterpret_cast<char *>(myStor.commandLine[i + 2]), 1);
+                        if(myStor.commandLine[i + 3] != '.'){
+                        char *punctu;
+                        punctu = &myStor.commandLine[i + 2];
+                        deletePunctuationMark(1, punctu, 1);
                         i+=2;
+                        }
+                        else
+                        {
+                            char *punctu = new char[3];// многоточие
+
+                            for (int j = 0; j < 3; ++j) {
+                                punctu = &myStor.commandLine[i + j];
+                            }
+                            deletePunctuationMark(1, punctu, 1);
+                            i+=2;
+                        }
                     }
                }
-               else {
+               else if (myStor.pos == 0) {
                    int index = (int)myStor.commandLine [i+4] - 48;
                    if (index == myStor.sentenceCounter) {//&& blockerP2 == 0
                        i += 4;
-                       pos = myStor.commandLine[i + 2];// позиция
-                       i + 2;
+                       myStor.pos = myStor.commandLine[i + 2] - 48;// позиция
+                       i += 2;
                        length = 0;
-                       while (myStor.commandLine[i + 1] != ',') {
-                           newWord[length] = myStor.commandLine[i + 1];
+                       while (myStor.commandLine[i + 2] != ',') {
+                           myStor.newWord[length] = myStor.commandLine[i + 2];
                            length++;
                            i++;
                        }
@@ -278,7 +296,7 @@ public:
 
     // / isDeleteAll - если не 0 то удалить только punctMarc,
     // иначе удалить все, модифицирует punctuation массив, заменяя выбранные знаки пробелом
-    void deletePunctuationMark(int isDeleteAll, char* punctMarc, int length) {
+    void deletePunctuationMark(int isDeleteAll, char punctMarc[], int length) {
         if (isDeleteAll == 0)
             for (int i = 0; i < pCounter; ++i) {
                 *punctuation[i] = ' ';
@@ -329,7 +347,7 @@ public:
               if(counter == length)
               {
                   word = nWord;
-                  blockerC7 = -1;
+                  myStor.blockerC7 = -1;
               }
               else counter = 0;
           }
@@ -342,54 +360,69 @@ public:
     // этот метод записывает результат в файл
     // навесить блокеры, если слово есть, а блокер 0
     void printer() {
-        int positionCorr = pos;// завожу корректировки по знакам пунктуации
+        int positionCorr = 0;// завожу корректировки по знакам пунктуации
         ofstream out;               // поток для записи
         out.open(myStor.nameOfFile, ios::app);// окрываем файл для записи
         if (out.is_open()) {
 
             //int checker = wordLength[0];
             for (int i = 0; i < sWCounter; ++i) {
-                if (pos != 0 && positionCorr == i)//проверка для пункта р2
+                if (myStor.pos == (i - positionCorr + 1) && myStor.blockerP2 == 0)//проверка для пункта р2
                 {
-                    out << " " ;
+                    if(myStor.pos - 1 != 0) out << " ";
                     for (int j = 0; j < nwLength; ++j) {
-                        out << &newWord[j];
+                        out << myStor.newWord[j];
                     }
-                    blockerP2 = 1;//блокирую метод p2
+                    if(myStor.pos - 1 == 0) out << " ";
+                    myStor.blockerP2 = 1;//блокирую метод p2
                 }
-                if (blockerH2 == 0 && startOnThisWordNumber != 0)
+                if (myStor.blockerH2 == 0 && startOnThisWordNumber != 0)
                 {
                     out << " " << startOnThisWordNumber;
-                    blockerH2 = 1;
+                    myStor.blockerH2 = 1;
+                   // i++;
+                   // if(i == sWCounter) break;
                 }
-                if (blockerC7 == -1)
+                if (myStor.blockerC7 == -1)
                 {
                     out << " ";
                     for (int j = 0; j < wLength; ++j) {
                         out  << &word[j];
+                      //  i++;
+                        //if(i == sWCounter) break;
                     }
 
-                    blockerC7 = 1;
+                    myStor.blockerC7 = 1;
                 }
-                else if ((wordLength[i]) != 3 && wordLength[i] != 1) {
+                if ((wordLength[i]) != 3 && wordLength[i] != 1) {
+                    if (i != 0) out << " ";
                     char* insWord = sentenceWith[i];
                     for (int k = 0; k < wordLength[i]; ++k) {
                         out << insWord[k];
                     }
-                    out << " ";
+                   // i++;
+                   // if(i == sWCounter) break;
                 }
                 // если слово не походит на знак пунктуации, то вывожу
-                else if (wordLength[i] == 1 && *sentenceWith[i] != ' ') out << sentenceWith[i];
-                else if (wordLength[i] == 3) {
-                    char *check = new char[3];
-                    check[0] = *sentenceWith[i];
+                if (wordLength[i] == 1 && *sentenceWith[i]-48 != ' ')
+                {
+
+                    out << ' ' << (string)sentenceWith[i];
+                    if(punctuationChecker(*sentenceWith[i])) positionCorr++;
+                    //i++;
+                   //if(i == sWCounter) break;
+                }
+                if((*sentenceWith[i] - 48) == ' ') positionCorr++;
+                if (wordLength[i] == 3) {
+                    char *check = sentenceWith[i];
                     if(check[0] != ' ')
                     {
-                        if (check[0] != '.' && i != 0) out << ' ';
+                        if (i != 0) out << ' ';
                         for (int j = 0; j < 3; ++j) {
                             out << check[j];
                         }
                     }
+                    if(check[0] == '.' || check[0] == ' ') positionCorr += 3;
                 }
             }
             out << '\n';
@@ -426,3 +459,5 @@ int main() {
 //C:\tmp\test1.txt
 //C:\tmp\test1.txt
 //P.2.2.4.trtrtr,
+
+
