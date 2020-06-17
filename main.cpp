@@ -3,18 +3,37 @@
 #include <string>
 
 using namespace std;
+/**
+Р.2) вставить в предложении новое слово перед заданным словом,
+Р.6) удалить в предложении знак пунктуации (указанный и/или все).
+Указание определенного предложения:
+П.2) предложение, начинающееся с указанного слова,
+Указание заданного слова:
+С.7) содержащее заданную последовательность символов
+**/
 struct MyStor {//for save all inform
     string nameOfFile;
     int sentenceCounter = 0;//порядковый номер предложения
     string commandLine;//line with command   6
-    int pos = 0;// P2 position
+    int pos = -1;// P2 position
     int blockerP2 = 0;
     int blockerH2 = 0;
     int blockerC7 = 0;
     int blockerP6 = 0;
     char *newWord = new char[CHAR_MAX];// P2 word
+    int nwLength = 0;// р2 newWord length
     char *word = new char[CHAR_MAX];//C7
     int wLength = 0;//c7 word length
+};
+
+struct nexSumb//структура хранения всех слов и символов
+{
+    nexSumb* nWord;// указатель на следующее слово
+    int length = 0;// длина слова
+    char sent[20];// само слово
+    int flag = 0;//punctuation checker
+    //0 - не пунктуация, 1 - пунктуаця, 2 - многоточие
+    int deleted = 0; // 0 - не удалено, 1 - удалено
 };
 
 MyStor myStor;
@@ -24,13 +43,14 @@ class Sentence//новое предложение
 {
 public:
 
-    char **sentenceWith = new char *[CHAR_MAX];// указатель на начало слов и знаков пунктуации
+   // char **sentenceWith = new char *[CHAR_MAX];// указатель на начало слов и знаков пунктуации
     int sWCounter = 0;// подсчет количества элементов в sentenceWith
-    char **punctuation = new char *[CHAR_MAX];// указатель на знаки пунктуации
-    int *wordLength = new int[INT16_MAX];// для sentenceWith
-    int nwLength = 0;// р2 newWord length
-    int pCounter = 0;// подсчет количества элементов в punctuation
-    int startOnThisWordNumber = 0; //h2 result
+    //char **punctuation = new char *[CHAR_MAX];// указатель на знаки пунктуации
+    //int *wordLength = new int[INT16_MAX];// для sentenceWith
+
+    //int pCounter = 0;// подсчет количества элементов в punctuation
+    nexSumb *firstWord; // указатель на первое слово
+
 
     //для создания нового предложения просто ввожу строку
     Sentence(string line) { splitter(line); }
@@ -38,67 +58,104 @@ public:
     //метод парсит предложение на слова и вызывает метод добавления
     void splitter(string line) {
         int totalWordCount = 0;// количество букв в слове, на один меньше для записи в массив
-        char *wordFast = new char[totalWordCount];
-        //int flag = 0; //первое слово
-        for (int i = 0; i < line.length(); ++i) {
-            if (line[i] == ' ') {
-                add(wordFast, totalWordCount);
-                for (int j = 0; j < totalWordCount; ++j) {
+        int i = 0;
+        char *wordFast = new char [line.length()];
+        while (line.length() > i && line[i] != ' ')
+        {
+            wordFast[i] = line[i];
+            i++;
+            totalWordCount++;
+        }
+        int j = totalWordCount + 1;
+        nexSumb tem = add(wordFast, totalWordCount);
+        nexSumb *preWord = &tem;// предыдущее слово для указания
+        firstWord = preWord;//
+        totalWordCount = 0;
+        int flag = 0;
+        for (int i = j; i < line.length(); ++i) {
+            if (line[i] == ' ' || j++ == line.length())
+            {
+                nexSumb *prevWord;
+                nexSumb temp;
+                temp = add(wordFast, totalWordCount);// связываю его с предыдущим элементом
+                if(flag == 0)
+                {
+                    if(i - (firstWord->length+totalWordCount) != 0)// если после первого слова был знак препинания
+                    {
+                        prevWord = &temp;
+                        firstWord->nWord->nWord = &temp;
+                        totalWordCount = 0;
+                    }
+                    else
+                        {
+                        firstWord->nWord = &temp;// если было только слово, тогда все ок
+                        prevWord = &temp; // элемент становится предыдущим
+                        totalWordCount = 0;
+                        }
+                    flag = 1;// флаг первого слова поднять
                 }
-                totalWordCount = 0;
-
-            } else {
+               else {
+                    prevWord->nWord = &temp;
+                    prevWord = &temp; // элемент становится предыдущим
+                    totalWordCount = 0;
+                }
+            }
+            else {
                 wordFast[totalWordCount] = line[i];
                 totalWordCount++;
             }
         }
-        add(wordFast, totalWordCount);
         commandParser();
-        printer();
-
+        strPrinter();
         delete[] wordFast;
     }
 
-    // метод добавляет новое слово и заводит указатель на его начало в sentenceWith, punctuation, clearSentence
-    void add(char *wordAdd, int length) {
-        int fastLength = length;
+    // метод добавляет новое слово в структуру, если была пунктуация, то добавится и она отдельным словом. Возвращает
+    // указатель на это слово
+    nexSumb add(char *wordAdd, int length) {
+        int fastLength = length;// хранение первоначального размера
+        nexSumb *sumb;// знак препинания если будет
         //если последняя буква в слове - знак препинания, делаю длину слова меньше на 1
-        if (punctuationChecker(wordAdd[length - 1]))
-            length -= 1;
-        else if (wordAdd[length - 1] == '.') {
+
+        if (punctuationChecker(wordAdd[length - 1]) || wordAdd[length - 1] == '.') {
             if (wordAdd[length - 2] == '.')// проверяю на многоточие
+            {
+                nexSumb nexSumb;
+                nexSumb.flag = 2;// многоточие
+                nexSumb.length = 3;
+                nexSumb.sent[0] = '.';
+                nexSumb.sent[1] = '.';
+                nexSumb.sent[2] = '.';
+                sumb = &nexSumb;
                 length -= 3;
-            else length -= 1;
-        }
-        char *nWord = new char[length];
-        for (int j = 0; j < length; ++j) {
-            nWord[j] = wordAdd[j];
-        }
-        // указатель на начало слова завожу в необходимые массивы
-        sentenceWith[sWCounter] = nWord;// в массив указателей вводим новый указатель на слово
-        wordLength[sWCounter] = length;
-        sWCounter++;
-        length++;
-        if (length == fastLength) //проверяю, был ли в конце знак препинания не равный многоточию
-        {
-            char *punct = new char[1];
-            punct[0] = wordAdd[length - 1];
-            sentenceWith[sWCounter] = punct;
-            wordLength[sWCounter] = 1;
-            sWCounter++;
-            punctuation[pCounter] = punct;
-            pCounter++;
-        } else {
-            length += 2;
-            if (length == fastLength) {
-                char *punct = new char[3] {'.','.','.'};
-                sentenceWith[sWCounter] = punct;
-                wordLength[sWCounter] = 3;
                 sWCounter++;
-                punctuation[pCounter] = punct;
-                pCounter++;
+            } else { // если не многоточие, добавляю
+                nexSumb nexSumb;
+                nexSumb.flag = 1;
+                nexSumb.length = 1;
+                nexSumb.sent[0] = wordAdd[length - 1];
+                sumb = &nexSumb;
+                length -= 1;
+                sWCounter++;
             }
+        }//если была пунктуация я создал новую структуру
+        nexSumb word;
+        for (int j = 0; j < length; ++j) {
+            word.sent[j] = wordAdd[j];
+        }// основное добавление слова
+        sWCounter++;
+        word.length = length;
+        length++;
+        if (length == fastLength) //проверяю, был ли в конце знак препинания и добавляю в слово как следующий элемент
+        {
+            word.nWord = sumb;
         }
+        length += 2;
+        if (length == fastLength)
+        {
+            word.nWord = sumb;
+        }
+        return word;
     }
 
     // check punctuation mark
@@ -199,7 +256,7 @@ public:
                     i++;
                 }
                 usingSumbolSequence(nWord, length);
-                nwLength = length;
+                myStor.nwLength = length;
             }
             if (myStor.commandLine[i] == 'P') {
                 int index = (int) myStor.commandLine[i + 4] - 48;
@@ -230,7 +287,7 @@ public:
                             length++;
                             i++;
                         }
-                        nwLength = length;
+                        myStor.nwLength = length;
                     }
                 }
             }
@@ -241,120 +298,127 @@ public:
     // / isDeleteAll - если не 0 то удалить только punctMarc,
     // иначе удалить все, модифицирует punctuation массив, заменяя выбранные знаки пробелом
     void deletePunctuationMark(int isDeleteAll, char *punctMarc, int length) {
-        if (isDeleteAll == 0)
-            for (int i = 0; i < pCounter; ++i) {
-                *punctuation[i] = ' ';
+        nexSumb *nexSumb = firstWord->nWord;// ссылаю сразу на 2 элемент, если что удаляю его
+        if(firstWord->flag != 0 && length == firstWord->length)
+            if(isDeleteAll == 0 || firstWord->sent[0] == '.' || firstWord->sent[0] == *punctMarc)
+            {
+                firstWord->deleted = 1;// удалил знак
             }
-        else if (length == 1) {
-            for (int i = 0; i < pCounter; ++i) {
-                if (*punctuation[i] == punctMarc[0]) *punctuation[i] = ' ';
-            }
-        } else
-            for (int i = 0; i < pCounter; ++i) {
-                if (*punctuation[i] == punctMarc[0])
-                    *punctuation[i] = ' ';//затираем многоточие
-            }
+        for (int i = 1; i < sWCounter; ++i)
+        {// прохожу по всем элементам в
+            if(nexSumb->flag != 0 && length == nexSumb->length)
+                if(isDeleteAll == 0 || nexSumb->sent[0] == '.' || nexSumb->sent[0] == *punctMarc)
+                {
+                    firstWord->deleted = 1;// удалил знак
+                }
+        }
             myStor.blockerP6 = 1;
     }
 
     void startOnThisWord(char *word, int length) {
-        if (wordLength[0] == length) {
+        if (firstWord->length == length) {
             int controller = 0;
-            char *nWord = sentenceWith[0];
-            for (int i = 0; i < wordLength[0]; ++i) {
-                if (nWord[i] != word[i]) break;
+            for (int i = 0; i < firstWord->length; ++i) {
+                if (firstWord->sent[i] != word[i]) break;
                 else controller++;
             }
-            if (controller == wordLength[0]) {
-                startOnThisWordNumber = myStor.sentenceCounter;
+            if (controller == length) {
+                myStor.blockerH2 = 1;
             }
         }
     }//H2
 
     void usingSumbolSequence(char *wordUse, int length) {
         int counter = 0;
-        for (int i = 0; i < sWCounter; ++i)//перебор слов
-        {
-            if (wordLength[i] > length) {
-                char *nWord =  sentenceWith[i];
-                for (int j = 0; j < wordLength[i]; ++j) {
-                    if (nWord[j] == wordUse[counter]) counter++;
+        nexSumb *nexSumb = firstWord->nWord;// ссылаю сразу на 2 элемент, если что удаляю его
+        if(firstWord->flag != 0 && length <= firstWord->length)
+            {
+                for (int i = 0; i < firstWord->length; ++i) {
+                    if (firstWord->sent[i] == wordUse[counter]) counter++;
                     else if(length == counter) break;
                     else counter = 0;
                 }
                 if (counter == length) {
-                    myStor.word = nWord;
+                    myStor.word = firstWord->sent;
                     myStor.blockerC7 = -1;
-                    myStor.wLength = wordLength[i];
+                    myStor.wLength = firstWord->length;
                     return;
-                } else counter = 0;
+                }
             }
+
+        for (int i = 1; i < sWCounter; ++i)
+        {// прохожу по всем элементам
+            if(nexSumb->flag != 0 && length <= nexSumb->length)
+                {
+                    for (int j = 0; j < nexSumb->length; ++j) {
+                        if (nexSumb->sent[j] == wordUse[counter]) counter++;
+                        else if(length == counter) break;
+                        else if (length-=i < length) break;
+                        else counter = 0;
+                    }
+                }
         }
-    }//c7
+
+        if (counter == length) {
+            myStor.word = firstWord->sent;
+            myStor.blockerC7 = -1;
+            myStor.wLength = firstWord->length;
+            return;
+        }
+
+    }
+
+
 
     // здесь я возвращаю адрес первого вхождения указанного слова
-
-    // этот метод записывает результат в файл
-    // навесить блокеры, если слово есть, а блокер 0
-    void printer() {
-        int positionCorr = 0;// завожу корректировки по знакам пунктуации
-        ofstream out;               // поток для записи
+    void strPrinter() {
+        int counter = 0; // подсчет вывода слов для пункта P2
+        ofstream out;// поток для записи
+        nexSumb *nexSumb = firstWord;// cледующий элемент
         out.open(myStor.nameOfFile, ios::app);// окрываем файл для записи
         if (out.is_open()) {
             for (int i = 0; i < sWCounter; ++i) {
-                if (wordLength[i] == 1) {
-                    char *wordOne = sentenceWith[i];
-                    if (wordOne[0] != ' ') {
-                        if (punctuationChecker(wordOne[0]))positionCorr++;
-                        else if (wordOne[0] == '.')positionCorr++;
-                        else out << ' ';
-                        out << wordOne[0];
-                    }
-                    delete[] wordOne;
+                if (myStor.blockerH2 == 1) {
+                    out << "->" << " ";
+                    myStor.blockerH2 = 0;
                 }
-                int tmp = i - positionCorr + 1;
-                if (myStor.pos == tmp && myStor.blockerP2 == 0)//проверка для пункта р2
+
+                // вывод для метода Н2
+                if (myStor.pos == counter && myStor.blockerP2 == 0)//проверка для пункта р2
                 {
                     if (myStor.pos - 1 != 0) out << " ";
-                    for (int j = 0; j < nwLength; ++j) {
+                    for (int j = 0; j < myStor.nwLength; ++j) {
                         out << myStor.newWord[j];
                     }
                     if (myStor.pos - 1 == 0) out << " ";
                     myStor.blockerP2 = 1;//блокирую метод p2
                 }
+                    // вывод для метода Р2
 
-                if (myStor.blockerH2 == 0 && startOnThisWordNumber != 0) {
-                    out << "->" << " ";
-                    myStor.blockerH2 = 1;
-                }
+                else // вывод для всего остального
+                {
+                    if (nexSumb->deleted == 0) // слово не удалено
+                    {
+                        if (nexSumb->flag == 0) {
+                            counter++;
+                            if (i != 0)cout << " ";// если не первое слово или не пунктуация выведу пробел
+                        }
 
-                if ((wordLength[i]) != 3 && wordLength[i] != 1) {
-                    if (i != 0) out << " ";
-                    char *insWord = sentenceWith[i];
-                    for (int k = 0; k < wordLength[i]; ++k) {
-                        out << insWord[k];
-                    }
-                }// если слово не походит на знак пунктуации, то вывожу
+                        for (int j = 0; j < nexSumb->length; ++j) {
+                            out << nexSumb->sent[j];
+                        }
 
-                if ((*sentenceWith[i] - 48) == ' ') positionCorr++;
-                if (wordLength[i] == 3) {
-                    char *check = sentenceWith[i];
-                    if (check[0] != ' ' && check[0] != '.') {
-                        if (i != 0) out << ' ';
-                    }
-                    for (int j = 0; j < 3; ++j) {
-                        out << check[j];
+
+                    } else // если удалено
+                    {
+                        nexSumb = nexSumb->nWord; // передаю указатель на следующее слово
                     }
                 }
             }
-            out << '\n';
         }
-        out.close();
-        delete [] sentenceWith;
-        delete [] punctuation;
-        delete [] wordLength;
     }
 };
+
 
 
 int main() {
@@ -411,3 +475,6 @@ int main() {
     }
     in.close();
 }
+// отчет сделать
+// аннотацию сделать
+// глянуть флаги пунктуации в ADD
