@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <climits>
 
 using namespace std;
 /**
@@ -66,7 +67,7 @@ public:
             i++;
             totalWordCount++;
         }
-        nexSumb tmp = add(wordFast,totalWordCount);
+        nexSumb *tmp = add(wordFast,totalWordCount);
         int j = totalWordCount + 1;
         totalWordCount = 0;
         int flag = 0;
@@ -75,15 +76,16 @@ public:
         for (int i = j; i < line.length(); ++i) {
             if(flag == 0)
             {
-                prevWord = &tmp;
+                prevWord = tmp;
                 flag = 1;
             }
             if (line[i] == ' ' || j++ == line.length())
             {
-                nexSumb temp;
+                nexSumb *temp;
                 temp = add(wordFast, totalWordCount);// связываю его с предыдущим элементом
-                prevWord->nWord = &temp;
-                prevWord = &temp; // элемент становится предыдущим
+
+                prevWord->nWord = temp;
+                prevWord = temp; // элемент становится предыдущим
                 totalWordCount = 0;
 
             }
@@ -99,7 +101,7 @@ public:
 
     // метод добавляет новое слово в структуру, если была пунктуация, то добавится и она отдельным словом. Возвращает
     // указатель на это слово
-    nexSumb add(char *wordAdd, int length) {
+    nexSumb *add(char *wordAdd, int length) {
         int fastLength = length;// хранение первоначального размера
         nexSumb *sumb = NULL;// знак препинания если будет
         //если последняя буква в слове - знак препинания, делаю длину слова меньше на 1
@@ -107,38 +109,38 @@ public:
         if (punctuationChecker(wordAdd[length - 1]) || wordAdd[length - 1] == '.') {
             if (wordAdd[length - 2] == '.')// проверяю на многоточие
             {
-                nexSumb nexSumb;
-                nexSumb.flag = 2;// многоточие
-                nexSumb.length = 3;
-                nexSumb.sent[0] = '.';
-                nexSumb.sent[1] = '.';
-                nexSumb.sent[2] = '.';
-                sumb = &nexSumb;
+                nexSumb *nexSumb = new struct nexSumb;
+                nexSumb->flag = 2;// многоточие
+                nexSumb->length = 3;
+                nexSumb->sent[0] = '.';
+                nexSumb->sent[1] = '.';
+                nexSumb->sent[2] = '.';
+                sumb = nexSumb;
                 length -= 3;
                 sWCounter++;
             } else { // если не многоточие, добавляю
-                nexSumb nexSumb;
-                nexSumb.flag = 1;
-                nexSumb.length = 1;
-                nexSumb.sent[0] = wordAdd[length - 1];
-                sumb = &nexSumb;
+                nexSumb *nexSumb = new struct nexSumb;
+                nexSumb->flag = 1;
+                nexSumb->length = 1;
+                nexSumb->sent[0] = wordAdd[length - 1];
+                sumb = nexSumb;
                 length -= 1;
                 sWCounter++;
             }
         }//если была пунктуация я создал новую структуру
-        nexSumb word;
+        nexSumb *word = new nexSumb;
         for (int j = 0; j < length; ++j) {
-            word.sent[j] = wordAdd[j];
+            word->sent[j] = wordAdd[j];
         }// основное добавление слова
         sWCounter++;
-        word.length = length;
+        word->length = length;
         if (length < fastLength) //проверяю, был ли в конце знак препинания и добавляю в слово как следующий элемент
         {
-            word.nWord = sumb;
-            firstWord = &word;
-            return *sumb;
+            word->nWord = sumb;
+            firstWord = word;
+            return sumb;
         }
-        if (sWCounter == 0) firstWord = &word;
+        if (sWCounter == 0) firstWord = word;
         return word;
     }
 
