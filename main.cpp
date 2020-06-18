@@ -68,38 +68,20 @@ public:
         }
         int j = totalWordCount + 1;
         nexSumb tem = add(wordFast, totalWordCount);
-        nexSumb *preWord = &tem;// предыдущее слово для указания
-        firstWord = preWord;//
         totalWordCount = 0;
-        int flag = 0;
+        int flag = 0;//delete
         for (int i = j; i < line.length(); ++i) {
+            nexSumb *prevWord = new nexSumb;
+            if (j>firstWord->length && sWCounter < 3) firstWord->nWord->nWord = prevWord;
+            else firstWord->nWord = prevWord;
             if (line[i] == ' ' || j++ == line.length())
             {
-
-                nexSumb *prevWord;
                 nexSumb temp;
                 temp = add(wordFast, totalWordCount);// связываю его с предыдущим элементом
-                if(flag == 0)
-                {
-                    if(i - (firstWord->length+totalWordCount) != 0)// если после первого слова был знак препинания
-                    {
-                        prevWord = &temp;
-                        firstWord->nWord->nWord = &temp;
-                        totalWordCount = 0;
-                    }
-                    else
-                        {
-                        firstWord->nWord = &temp;// если было только слово, тогда все ок
-                        prevWord = &temp; // элемент становится предыдущим
-                        totalWordCount = 0;
-                        }
-                    flag = 1;// флаг первого слова поднять
-                }
-               else {
-                    prevWord->nWord = &temp;
-                    prevWord = &temp; // элемент становится предыдущим
-                    totalWordCount = 0;
-                }
+                prevWord->nWord = &temp;
+                prevWord = &temp; // элемент становится предыдущим
+                totalWordCount = 0;
+
             }
             else {
                 wordFast[totalWordCount] = line[i];
@@ -115,7 +97,7 @@ public:
     // указатель на это слово
     nexSumb add(char *wordAdd, int length) {
         int fastLength = length;// хранение первоначального размера
-        nexSumb *sumb;// знак препинания если будет
+        nexSumb *sumb = NULL;// знак препинания если будет
         //если последняя буква в слове - знак препинания, делаю длину слова меньше на 1
 
         if (punctuationChecker(wordAdd[length - 1]) || wordAdd[length - 1] == '.') {
@@ -146,16 +128,13 @@ public:
         }// основное добавление слова
         sWCounter++;
         word.length = length;
-        length++;
-        if (length == fastLength) //проверяю, был ли в конце знак препинания и добавляю в слово как следующий элемент
+        if (length < fastLength) //проверяю, был ли в конце знак препинания и добавляю в слово как следующий элемент
         {
             word.nWord = sumb;
+            firstWord = &word;
+            return *sumb;
         }
-        length += 2;
-        if (length == fastLength)
-        {
-            word.nWord = sumb;
-        }
+        if (sWCounter == 0) firstWord = &word;
         return word;
     }
 
@@ -230,15 +209,15 @@ public:
                 }
                 i = tempI;
                 i +=4;
-                char *nWord = new char[length];
+                char *nxWord = new char[length];
                 length = 0;
                 while (myStor.commandLine[i] != ',') {
-                    nWord[length] = myStor.commandLine[i];
+                    nxWord[length] = myStor.commandLine[i];
                     length++;
                     i++;
                 }
-                startOnThisWord(nWord, length);
-                delete[] nWord;
+                startOnThisWord(nxWord, length);
+                delete[] nxWord;
             }
             if (myStor.commandLine[i] == 'C' && myStor.blockerC7 == 0) {
                 tempI = i;
@@ -249,14 +228,14 @@ public:
                 }
                 i = tempI;
                 i += 4;
-                char *nWord = new char[length];
+                char *nxWord = new char[length];
                 length = 0;
                 while (myStor.commandLine[i] != ',') {
-                    nWord[length] = myStor.commandLine[i];
+                    nxWord[length] = myStor.commandLine[i];
                     length++;
                     i++;
                 }
-                usingSumbolSequence(nWord, length);
+                usingSumbolSequence(nxWord, length);
                 myStor.nwLength = length;
             }
             if (myStor.commandLine[i] == 'P') {
@@ -476,6 +455,6 @@ int main() {
     }
     in.close();
 }
-// отчет сделать
-// аннотацию сделать
+// в отчете только перемахнуть код на новый
+
 // глянуть флаги пунктуации в ADD
