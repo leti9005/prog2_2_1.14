@@ -66,14 +66,18 @@ public:
             i++;
             totalWordCount++;
         }
+        nexSumb tmp = add(wordFast,totalWordCount);
         int j = totalWordCount + 1;
-        nexSumb tem = add(wordFast, totalWordCount);
         totalWordCount = 0;
-        int flag = 0;//delete
+        int flag = 0;
+
+        nexSumb *prevWord = new nexSumb;
         for (int i = j; i < line.length(); ++i) {
-            nexSumb *prevWord = new nexSumb;
-            if (j>firstWord->length && sWCounter < 3) firstWord->nWord->nWord = prevWord;
-            else firstWord->nWord = prevWord;
+            if(flag == 0)
+            {
+                prevWord = &tmp;
+                flag = 1;
+            }
             if (line[i] == ' ' || j++ == line.length())
             {
                 nexSumb temp;
