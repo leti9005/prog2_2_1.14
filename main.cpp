@@ -75,6 +75,7 @@ public:
         for (int i = j; i < line.length(); ++i) {
             if (line[i] == ' ' || j++ == line.length())
             {
+
                 nexSumb *prevWord;
                 nexSumb temp;
                 temp = add(wordFast, totalWordCount);// связываю его с предыдущим элементом
