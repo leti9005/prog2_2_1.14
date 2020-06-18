@@ -68,26 +68,19 @@ public:
             totalWordCount++;
         }
         nexSumb *tmp = add(wordFast,totalWordCount);
-        int j = totalWordCount + 1;
-        totalWordCount = 0;
-        int flag = 0;
-
         nexSumb *prevWord = new nexSumb;
-        for (int i = j; i < line.length(); ++i) {
-            if(flag == 0)
-            {
-                prevWord = tmp;
-                flag = 1;
-            }
-            if (line[i] == ' ' || j++ == line.length())
+        if(sWCounter == 2)prevWord = tmp->nWord;
+
+        int j = totalWordCount + 1;// корректировка на пробел
+        totalWordCount = 0;
+        for (int i = j; i < line.length() + 1; ++i) {
+            if (line[i] == ' ' || i == line.length())
             {
                 nexSumb *temp;
                 temp = add(wordFast, totalWordCount);// связываю его с предыдущим элементом
-
                 prevWord->nWord = temp;
                 prevWord = temp; // элемент становится предыдущим
                 totalWordCount = 0;
-
             }
             else {
                 wordFast[totalWordCount] = line[i];
@@ -102,6 +95,7 @@ public:
     // метод добавляет новое слово в структуру, если была пунктуация, то добавится и она отдельным словом. Возвращает
     // указатель на это слово
     nexSumb *add(char *wordAdd, int length) {
+        int controller = sWCounter;
         int fastLength = length;// хранение первоначального размера
         nexSumb *sumb = NULL;// знак препинания если будет
         //если последняя буква в слове - знак препинания, делаю длину слова меньше на 1
@@ -137,10 +131,8 @@ public:
         if (length < fastLength) //проверяю, был ли в конце знак препинания и добавляю в слово как следующий элемент
         {
             word->nWord = sumb;
-            firstWord = word;
-            return sumb;
         }
-        if (sWCounter == 0) firstWord = word;
+        if(controller == 0) firstWord = word;
         return word;
     }
 
