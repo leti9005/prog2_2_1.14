@@ -70,16 +70,19 @@ public:
         nexSumb *tmp = add(wordFast,totalWordCount);
         nexSumb *prevWord = new nexSumb;
         if(sWCounter == 2)prevWord = tmp->nWord;
-
+        else prevWord = firstWord;
         int j = totalWordCount + 1;// корректировка на пробел
         totalWordCount = 0;
         for (int i = j; i < line.length() + 1; ++i) {
             if (line[i] == ' ' || i == line.length())
             {
                 nexSumb *temp;
+                int controller = sWCounter;
                 temp = add(wordFast, totalWordCount);// связываю его с предыдущим элементом
                 prevWord->nWord = temp;
-                prevWord = temp; // элемент становится предыдущим
+                controller +=2;
+                if(controller  == sWCounter) prevWord = temp->nWord;
+                else prevWord = temp; // элемент становится предыдущим
                 totalWordCount = 0;
             }
             else {
@@ -276,23 +279,37 @@ public:
     // / isDeleteAll - если не 0 то удалить только punctMarc,
     // иначе удалить все, модифицирует punctuation массив, заменяя выбранные знаки пробелом
     void deletePunctuationMark(int isDeleteAll, char *punctMarc, int length) {
-        nexSumb *nexSumb = firstWord->nWord;// ссылаю сразу на 2 элемент, если что удаляю его
-        if(firstWord->flag != 0 && length == firstWord->length)
-            if(isDeleteAll == 0 || firstWord->sent[0] == '.' || firstWord->sent[0] == *punctMarc)
+        nexSumb *nextSumb = firstWord->nWord;// ссылаю сразу на 2 элемент, если что удаляю его
+       if(isDeleteAll == 1)
+       {
+           if(firstWord->flag != 0 && length == firstWord->length)
+            if(firstWord->sent[0] == '.' || firstWord->sent[0] == *punctMarc)
             {
                 firstWord->deleted = 1;// удалил знак
             }
         for (int i = 1; i < sWCounter; ++i)
         {// прохожу по всем элементам в
-            if(nexSumb->flag != 0 && length == nexSumb->length)
-                if(isDeleteAll == 0 || nexSumb->sent[0] == '.' || nexSumb->sent[0] == *punctMarc)
+            if(nextSumb->flag != 0 && length == nextSumb->length)
+                if(nextSumb->sent[0] == *punctMarc)
                 {
-                    firstWord->deleted = 1;// удалил знак
+                    nextSumb->deleted = 1;// удалил знак
                 }
+            nexSumb *temp = nextSumb->nWord;
+            nextSumb = temp;
         }
-            myStor.blockerP6 = 1;
-    }
-
+       }
+       else
+       {
+           if(firstWord->flag != 0) firstWord->deleted = 1;
+           for (int i = 1; i < sWCounter; ++i)
+           {// прохожу по всем элементам в
+               if(nextSumb->flag != 0 )nextSumb->deleted = 1;// удалил знак
+               nexSumb *temp = nextSumb->nWord;
+               nextSumb = temp;
+           }
+       }
+       myStor.blockerP6 = 1;
+}
     void startOnThisWord(char *word, int length) {
         if (firstWord->length == length) {
             int controller = 0;
@@ -308,8 +325,8 @@ public:
 
     void usingSumbolSequence(char *wordUse, int length) {
         int counter = 0;
-        nexSumb *nexSumb = firstWord->nWord;// ссылаю сразу на 2 элемент, если что удаляю его
-        if(firstWord->flag != 0 && length <= firstWord->length)
+        nexSumb *nextSumb = firstWord->nWord;// ссылаю сразу на 2 элемент, если что удаляю его
+        if(firstWord->flag == 0 && length <= firstWord->length)
             {
                 for (int i = 0; i < firstWord->length; ++i) {
                     if (firstWord->sent[i] == wordUse[counter]) counter++;
@@ -326,15 +343,18 @@ public:
 
         for (int i = 1; i < sWCounter; ++i)
         {// прохожу по всем элементам
-            if(nexSumb->flag != 0 && length <= nexSumb->length)
+            if(nextSumb->flag == 0 && length <= nextSumb->length)
                 {
-                    for (int j = 0; j < nexSumb->length; ++j) {
-                        if (nexSumb->sent[j] == wordUse[counter]) counter++;
-                        else if(length == counter) break;
-                        else if (length-=i < length) break;
+
+                    for (int j = 0; j < nextSumb->length; ++j) {
+                        if (nextSumb->sent[j] == wordUse[counter]) counter++;
+                        else if(length == counter) break;//если подошло
+                       // else if (length-=i < length) break;
                         else counter = 0;
                     }
                 }
+            nexSumb *temp = nextSumb->nWord;
+            nextSumb = temp;
         }
 
         if (counter == length) {
@@ -350,51 +370,47 @@ public:
 
     // здесь я возвращаю адрес первого вхождения указанного слова
     void strPrinter() {
-        int counter = 0; // подсчет вывода слов для пункта P2
+        int counter = 1; // подсчет вывода слов для пункта P2
         ofstream out;// поток для записи
-        nexSumb *nexSumb = firstWord;// cледующий элемент
+        nexSumb *nextSumb = firstWord;// cледующий элемент
         out.open(myStor.nameOfFile, ios::app);// окрываем файл для записи
         if (out.is_open()) {
             for (int i = 0; i < sWCounter; ++i) {
                 if (myStor.blockerH2 == 1) {
                     out << "->" << " ";
-                    myStor.blockerH2 = 0;
+                    myStor.blockerH2 = -1;
                 }
-
-                // вывод для метода Н2
                 if (myStor.pos == counter && myStor.blockerP2 == 0)//проверка для пункта р2
                 {
-                    if (myStor.pos - 1 != 0) out << " ";
-                    for (int j = 0; j < myStor.nwLength; ++j) {
-                        out << myStor.newWord[j];
+                    if (nextSumb->flag == 0) {
+                        if (myStor.pos - 1 != 0) out << " ";
+                        for (int j = 0; j < myStor.nwLength; ++j) {
+                            out << myStor.newWord[j];
+                        }
+                        if (myStor.pos - 1 == 0) out << " ";
+                        myStor.blockerP2 = 1;//блокирую метод p2
                     }
-                    if (myStor.pos - 1 == 0) out << " ";
-                    myStor.blockerP2 = 1;//блокирую метод p2
                 }
-                    // вывод для метода Р2
 
-                else // вывод для всего остального
-                {
-                    if (nexSumb->deleted == 0) // слово не удалено
+                if (nextSumb->deleted == 0) // слово не удалено
                     {
-                        if (nexSumb->flag == 0) {
+                        if (nextSumb->flag == 0) {
+                            if (i != 0)out << " ";// если не первое слово или не пунктуация выведу пробел
                             counter++;
-                            if (i != 0)cout << " ";// если не первое слово или не пунктуация выведу пробел
                         }
 
-                        for (int j = 0; j < nexSumb->length; ++j) {
-                            out << nexSumb->sent[j];
+                        for (int j = 0; j < nextSumb->length; ++j) {
+                            out << nextSumb->sent[j];
                         }
-
-
-                    } else // если удалено
-                    {
-                        nexSumb = nexSumb->nWord; // передаю указатель на следующее слово
                     }
-                }
-            }
+
+            nexSumb *temp = nextSumb->nWord;
+            nextSumb = temp;
         }
-    }
+
+            }
+            out << '\n';
+        }
 };
 
 
